@@ -2,6 +2,9 @@
 YEAR_FORMAT = '%Y'
 MONTH_YEAR_FORMAT = '%m-%Y'
 
+# argparse
+CSV = 'CSV'
+
 # help messages
 MONTH_ARG_HELP = """Date for generate working time.
 Supported date formats:
@@ -25,5 +28,11 @@ Example:
 WORK_ARG_HELP = """Additional worked days in saturdays/sundays/holidays in the month, separated by comma.
 Example:
     1,5,10
+
+"""
+
+RANGE_ARG_HELP = """Minimum and maximum range working hours in day, separated by comma.
+Example:
+    7,9
 
 """

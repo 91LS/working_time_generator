@@ -2,9 +2,10 @@ import argparse
 import calendar
 import datetime
 import time
-import sys
 
 from consts import *
+
+from decorators import no_traceback
 
 
 def get_args():
@@ -17,14 +18,22 @@ def get_args():
                         type=month_arg_assert)
     parser.add_argument('-f', '--furlough',
                         dest='furlough',
-                        metavar='CSV',
+                        metavar=CSV,
                         help=FURLOUGH_ARG_HELP,
+                        default=[],
                         type=csv_days_assert)
     parser.add_argument('-w', '--work',
                         dest='work',
-                        metavar='CSV',
+                        metavar=CSV,
                         help=WORK_ARG_HELP,
+                        default=[],
                         type=csv_days_assert)
+    parser.add_argument('-r', '--range',
+                        dest='range',
+                        metavar=CSV,
+                        help=RANGE_ARG_HELP,
+                        default=(6, 10),
+                        type=csv_range_assert)
     parsed_args = parser.parse_args()
     post_args_assert(parsed_args)
     return parsed_args
@@ -49,6 +58,23 @@ def csv_days_assert(days):
         raise argparse.ArgumentTypeError('Incorrect data format, should be 1,3,4,10,...')
 
 
+def csv_range_assert(hours_range):
+    hours_range = hours_range.split(',')
+    if len(hours_range) != 2:
+        raise argparse.ArgumentTypeError('Incorrect data format, too many commas, should be like 6,10')
+    try:
+        hours_min, hours_max = int(hours_range[0]), int(hours_range[1])
+    except ValueError:
+        raise argparse.ArgumentTypeError('Incorrect data format, try with 2 ints sparated by comma.')
+    if hours_min > hours_max:
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than {}'.format(hours_min, hours_max))
+    if hours_min < 1:
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is lower than 1'.format(hours_min))
+    if hours_max > 24:
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than 24'.format(hours_max))
+    return hours_min, hours_max
+
+
 # post asserts
 def post_args_assert(parsed_args):
     _, days_in_month = calendar.monthrange(*parsed_args.month)
@@ -65,14 +91,14 @@ def work_post_assert(days_in_month, work_days):
     days_in_month_assert(days_in_month, work_days)
 
 
+@no_traceback
 def days_in_month_assert(days_in_month, days):
     for day in days:
         if day > days_in_month or day < 1:
-            sys.tracebacklimit = 0
             raise argparse.ArgumentTypeError('Incorrect data format, day out of month range.')
 
 
+@no_traceback
 def day_collision_assert(days, other_days):
     if set(days).intersection(set(other_days)):
-        sys.tracebacklimit = 0
         raise argparse.ArgumentTypeError('Incorrect data format, furlough and work day can not intersect.')
