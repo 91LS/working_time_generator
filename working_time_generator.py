@@ -7,7 +7,6 @@ import xlsxwriter
 
 from arg_parser import get_args
 
-
 class WorkingTimeGenerator:
     def __init__(self, year, month, hours_range, furlough=None, work=None):
         self.polish_holidays = holidays.Polish()
@@ -43,50 +42,62 @@ class WorkingTimeGenerator:
         return random.randint(*self.hours_range)
 
     def _recalculate_worked_days(self, worked_days):
-        current_hours, required_hours, possible_days = self._get_worked_days_info(worked_days)
+        current_hours, required_hours = self._get_worked_days_info(worked_days)
         if current_hours == required_hours:
             return
-        recalculate_info = self._get_recalculate_info(current_hours, required_hours, possible_days)
+        recalculate_info = self._get_recalculate_info(worked_days, current_hours, required_hours)
         self._recalculate_days(worked_days, *recalculate_info)
 
     @staticmethod
     def _get_worked_days_info(worked_days):
         current_hours = 0
         required_hours = 0
-        possible_days_to_recalculate = []
         for num_week, week in enumerate(worked_days):
             for num_day, working_hours in enumerate(week):
                 if isinstance(working_hours, int) and working_hours > 0:
                     current_hours += working_hours
                     required_hours += 8
-                    possible_days_to_recalculate.append((num_week, num_day))
-        return current_hours, required_hours, possible_days_to_recalculate
+        return current_hours, required_hours
 
-    @staticmethod
-    def _get_recalculate_info(current_hours, required_hours, possible_days):
-        delta = abs(current_hours - required_hours)
-        global_diff, number_of_days_to_recalculate = divmod(delta, len(possible_days))
+    def _get_recalculate_info(self, worked_days, current_hours, required_hours):
         sign = 1 if current_hours < required_hours else -1
-        days_to_recalculate = random.sample(possible_days, number_of_days_to_recalculate)
-        return global_diff, sign, days_to_recalculate
+        delta = abs(current_hours - required_hours)
+        possible_days = self._get_possible_days_to_recalculate(worked_days, sign)
+        return delta, sign, possible_days
 
-    @staticmethod
-    def _set_global_diff(worked_days, global_diff, sign):
+    def _get_possible_days_to_recalculate(self, worked_days, sign):
+        min_working_time, max_working_time = self.hours_range
+        possible_days = []
         for num_week, week in enumerate(worked_days):
             for num_day, working_hours in enumerate(week):
-                if isinstance(working_hours, int) and working_hours > 0:
-                    worked_days[num_week][num_day] += global_diff * sign
+                if self._is_day_possible(working_hours, min_working_time, max_working_time, sign):
+                    possible_days.append((num_week, num_day))
+        return possible_days
 
-    def _recalculate_days(self, worked_days, global_diff, sign, days_to_recalculate):
-        if global_diff:
-            self._set_global_diff(worked_days, global_diff, sign)
-        for day_to_recalculate in days_to_recalculate:
-            worked_days[day_to_recalculate[0]][day_to_recalculate[1]] += 1 * sign
+    @staticmethod
+    def _is_day_possible(working_hours, min_working_time, max_working_time, sign):
+        if isinstance(working_hours, int) and working_hours > 0:
+            if (sign == 1 and working_hours < max_working_time) or \
+                    (sign == -1 and working_hours > min_working_time):
+                return True
+        return False
+
+    def _recalculate_days(self, worked_days, delta, sign, possible_days):
+        min_working_time, max_working_time = self.hours_range
+        while delta:
+            possible_day_idx = random.randrange(len(possible_days))
+            possible_week, possible_day = possible_days[possible_day_idx]
+            worked_days[possible_week][possible_day] += 1 * sign
+            delta -= 1
+            working_time = worked_days[possible_week][possible_day]
+            if working_time == min_working_time or working_time == max_working_time:
+                del possible_days[possible_day_idx]
 
 
 def main():
     args = get_args()
     wt_gen = WorkingTimeGenerator(*args.month, args.range, args.furlough, args.work)
+
     current_hours = 0
     for num_week, week in enumerate(wt_gen.worked_days):
         for num_day, working_hours in enumerate(week):
@@ -98,6 +109,4 @@ def main():
 
 
 if __name__ == '__main__':
-
-        main()
-
+    main()

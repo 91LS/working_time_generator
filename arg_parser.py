@@ -65,13 +65,15 @@ def csv_range_assert(hours_range):
     try:
         hours_min, hours_max = int(hours_range[0]), int(hours_range[1])
     except ValueError:
-        raise argparse.ArgumentTypeError('Incorrect data format, try with 2 ints sparated by comma.')
+        raise argparse.ArgumentTypeError('Incorrect data format, try with 2 ints sparated by comma')
     if hours_min > hours_max:
         raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than {}'.format(hours_min, hours_max))
     if hours_min < 1:
-        raise argparse.ArgumentTypeError('Incorrect data format, {} is lower than 1'.format(hours_min))
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is lower than 1 (min allowed)'.format(hours_min))
+    if hours_min > 8:
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than 8 (max allowed)'.format(hours_min))
     if hours_max > 24:
-        raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than 24'.format(hours_max))
+        raise argparse.ArgumentTypeError('Incorrect data format, {} is greater than 24 (max allowed)'.format(hours_max))
     return hours_min, hours_max
 
 
