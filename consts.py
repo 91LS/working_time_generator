@@ -31,7 +31,7 @@ Example:
 
 """
 
-RANGE_ARG_HELP = """Minimum and maximum range working hours in day, separated by comma.
+RANGE_ARG_HELP = """The most common range of working hours in day, separated by comma.
 Example:
     7,9
 

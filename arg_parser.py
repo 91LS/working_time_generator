@@ -94,7 +94,7 @@ def work_post_assert(days_in_month, work_days):
 @no_traceback
 def days_in_month_assert(days_in_month, days):
     for day in days:
-        if day > days_in_month or day < 1:
+        if not (1 <= day <= days_in_month):
             raise argparse.ArgumentTypeError('Incorrect data format, day out of month range.')
 
 
