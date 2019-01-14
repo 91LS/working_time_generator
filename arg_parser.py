@@ -11,7 +11,7 @@ def get_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-m', '--month',
                         dest='month',
-                        metavar='DATE',
+                        metavar=DATE,
                         help=MONTH_ARG_HELP,
                         default=time.strftime(MONTH_YEAR_FORMAT),
                         type=month_arg_assert)
@@ -31,7 +31,7 @@ def get_args():
                         dest='range',
                         metavar=CSV,
                         help=RANGE_ARG_HELP,
-                        default=(6, 10),
+                        default=DEFAULT_RANGE,
                         type=csv_range_assert)
     parsed_args = parser.parse_args()
     post_args_assert(parsed_args)

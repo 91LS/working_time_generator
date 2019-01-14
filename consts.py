@@ -4,6 +4,8 @@ MONTH_YEAR_FORMAT = '%m-%Y'
 
 # argparse
 CSV = 'CSV'
+DATE = 'DATE'
+DEFAULT_RANGE = (6, 10)
 
 # help messages
 MONTH_ARG_HELP = """Date for generate working time.

@@ -7,6 +7,7 @@ import xlsxwriter
 
 from arg_parser import get_args
 
+
 class WorkingTimeGenerator:
     def __init__(self, year, month, hours_range, furlough=None, work=None):
         self.polish_holidays = holidays.Polish()
