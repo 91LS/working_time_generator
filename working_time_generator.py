@@ -6,18 +6,24 @@ import holidays
 import xlsxwriter
 
 from arg_parser import get_args
+from consts import *
 
 
 class WorkingTimeGenerator:
-    def __init__(self, year, month, hours_range, furlough=None, work=None):
+    def __init__(self, year, month, hours_range, worker, furlough=None, work=None):
         self.polish_holidays = holidays.Polish()
         self.year = year
         self.month = month
         self.month_calendar = calendar.monthcalendar(year, month)
+        self.worker = worker
         self.hours_range = hours_range
         self.furlough = furlough
         self.work = work
         self.worked_days = self._get_worked_days()
+        self.workbook_name = '{}_{}.xlsx'.format(month, year)
+        self.workbook = xlsxwriter.Workbook(self.workbook_name)
+        self.worksheet = self.workbook.add_worksheet(self.workbook_name)
+        self.formats = self._get_formats_for_worksheet()
 
     def _get_worked_days(self):
         worked_days = []
@@ -94,19 +100,42 @@ class WorkingTimeGenerator:
             if working_time == min_working_time or working_time == max_working_time:
                 del possible_days[possible_day_idx]
 
+    # ************************************************ XLSWRITER *******************************************************
+    def _get_formats_for_worksheet(self):
+        return {format_name: self.workbook.add_format(format_style) for (format_name, format_style) in FORMATS.items()}
+
+    def write_workbook(self):
+        self._prepare_worksheet()
+        self._write_header()
+        self._close_and_save()
+
+    def _prepare_worksheet(self):
+        self._set_columns_width()
+
+    def _set_columns_width(self):
+        self.worksheet.set_column(INFO_COL, INFO_COL_WIDTH)
+        self.worksheet.set_column(HOURS_COLS, HOURS_COLS_WIDTH)
+
+    def _write_header(self):
+        self.worksheet.merge_range(WORKER_NAME, self.worker, self.formats['OUTER_BORDER'])
+
+    def _close_and_save(self):
+        self.workbook.close()
+
 
 def main():
     args = get_args()
-    wt_gen = WorkingTimeGenerator(*args.month, args.range, args.furlough, args.work)
+    wt_gen = WorkingTimeGenerator(*args.month, args.range, args.worker, args.furlough, args.work)
+    wt_gen.write_workbook()
 
-    current_hours = 0
-    for num_week, week in enumerate(wt_gen.worked_days):
-        for num_day, working_hours in enumerate(week):
-            if isinstance(working_hours, int) and working_hours > 0:
-                current_hours += working_hours
-    import pprint
-    print(current_hours)
-    pprint.pprint(wt_gen.worked_days)
+    # current_hours = 0
+    # for num_week, week in enumerate(wt_gen.worked_days):
+    #     for num_day, working_hours in enumerate(week):
+    #         if isinstance(working_hours, int) and working_hours > 0:
+    #             current_hours += working_hours
+    # import pprint
+    # print(current_hours)
+    # pprint.pprint(wt_gen.worked_days)
 
 
 if __name__ == '__main__':

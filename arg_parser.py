@@ -10,29 +10,30 @@ from consts import *
 def get_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-m', '--month',
-                        dest='month',
                         metavar=DATE,
                         help=MONTH_ARG_HELP,
                         default=time.strftime(MONTH_YEAR_FORMAT),
                         type=month_arg_assert)
+    parser.add_argument('-r', '--range',
+                        metavar=CSV,
+                        help=RANGE_ARG_HELP,
+                        default=DEFAULT_RANGE,
+                        type=csv_range_assert)
+    parser.add_argument('--worker',
+                        metavar=STRING,
+                        help=WORKER_ARG_HELP,
+                        default=DEFAULT_WORKER,
+                        type=str)
     parser.add_argument('-f', '--furlough',
-                        dest='furlough',
                         metavar=CSV,
                         help=FURLOUGH_ARG_HELP,
                         default=[],
                         type=csv_days_assert)
     parser.add_argument('-w', '--work',
-                        dest='work',
                         metavar=CSV,
                         help=WORK_ARG_HELP,
                         default=[],
                         type=csv_days_assert)
-    parser.add_argument('-r', '--range',
-                        dest='range',
-                        metavar=CSV,
-                        help=RANGE_ARG_HELP,
-                        default=DEFAULT_RANGE,
-                        type=csv_range_assert)
     parsed_args = parser.parse_args()
     post_args_assert(parsed_args)
     return parsed_args
@@ -47,14 +48,6 @@ def month_arg_assert(month_date):
         return [int(date_part) for date_part in month_date.split('-')[::-1]]
     except ValueError:
         exit_with_error('Incorrect data format, should be M-YYYY, MM-YYYY, M or MM')
-
-
-def csv_days_assert(days):
-    try:
-        days = days.strip().split(',')
-        return [int(day) for day in days]
-    except ValueError:
-        exit_with_error('Incorrect data format, should be 1,3,4,10,...')
 
 
 def csv_range_assert(hours_range):
@@ -74,6 +67,14 @@ def csv_range_assert(hours_range):
     if hours_max > 24:
         exit_with_error('Incorrect data format, {} is greater than 24 (max allowed)'.format(hours_max))
     return hours_min, hours_max
+
+
+def csv_days_assert(days):
+    try:
+        days = days.strip().split(',')
+        return [int(day) for day in days]
+    except ValueError:
+        exit_with_error('Incorrect data format, should be 1,3,4,10,...')
 
 
 # post asserts
